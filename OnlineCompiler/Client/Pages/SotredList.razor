@@ -1,0 +1,242 @@
+@page "/sortedlist"
+@using OnlineCompiler.Shared
+@inject HttpClient _http
+@using Microsoft.AspNetCore.Components
+@inject IStringLocalizer<Localization> _loc
+
+<PageTitle>@_loc["OnlineCsharpCompiler"]</PageTitle>
+
+<div class="container my-5">
+    <div class="text-center">
+        <h2>Отсортированный список (SortedList)</h2>
+    </div>
+    <p>Класс SortedList представляет коллекцию пар "ключ-значение", которая автоматически сортирует элементы по ключу в порядке возрастания. Когда элементы добавляются или удаляются из списка, SortedList автоматически пересортирует коллекцию, чтобы сохранить порядок сортировки.
+    </p>
+    <p>SortedList является полезным классом в сценариях, где требуется хранение пар "ключ-значение" с автоматической сортировкой по ключу.
+    </p>
+    <p>Визуальное представление структуры:</p>
+        <img height="50%" width="70%" src="7.jpg">
+
+
+    <p>Пример использования отсортированного списка:</p>
+    <pre>
+        <code>
+            SortedList&lt;int, string&gt; sortedList = new SortedList&lt;int, string&gt;();
+            sortedList.Add(3, "значение3");
+            sortedList.Add(1, "значение1");
+            sortedList.Add(2, "значение2");
+            
+            foreach (var item in sortedList)
+            {
+                Console.WriteLine($"Ключ: {item.Key}, Значение: {item.Value}");
+            }
+            // Вывод:
+            // Ключ: 1, Значение: значение1
+            // Ключ: 2, Значение: значение2
+            // Ключ: 3, Значение: значение3
+        </code>
+    </pre>
+
+    <h3>В классе SortedList можно выделить следующие методы:</h3>
+    <ul>
+        <li>Add: добавляет элемент с указанным ключом и значением в список</li>
+        <li>Remove: удаляет элемент с указанным ключом из списка</li>
+        <li>Clear: очищает список</li>
+        <li>ContainsKey: проверяет наличие элемента с указанным ключом в списке</li>
+        <li>ContainsValue: проверяет наличие элемента с указанным значением в списке</li>
+    </ul>
+</div>
+
+@if (_userExecuted)
+{
+    <button class="btn btn-warning" @onclick="ToggleCode">@if (_showCode) {<text>Скрыть полный код разработчиков</text>} else {<text>Показать полный код разработчиков</text>}</button>
+    if (_showCode)
+    {
+        <p></p>
+        <CodeEditor @bind-Code="_innerCode">@TemplateSortedList.SortedListCode
+        </CodeEditor>
+        <br/>
+
+        }
+}                                                                                                               
+
+<p></p>
+<p>Пишите свой код тут: </p>
+<CodeEditor @bind-Code="_userInnerCode">@TemplateSortedList.UserSortedListCode</CodeEditor>
+<br />
+<button class="btn btn-primary @(ExecuteButtonDisabled?"disabled":"")" @onclick="@(async () => { _userExecuted = true; await UserExecuteCode(); })">@_loc["Execute"]</button>
+
+<br />
+@if (_executionInfo != null)
+{
+    <text>&nbsp;</text>
+    switch (_executionInfo.Status)
+    {
+        case ExecutionInfo.ExecutionStatus.Preparing:
+            {
+                <status-indicator pulse />
+                <label>@_loc["Preparing"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.Compiling:
+            {
+                <status-indicator active />
+                <label>@_loc["Compiling"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.CompilationError:
+            {
+                <status-indicator negative />
+                <label>@_loc["CompilationError"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.Running:
+            {
+                <status-indicator active pulse />
+                <label>@_loc["Running"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.Finished:
+            {
+                <status-indicator positive />
+                <label>@_loc["Finished"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.WithWarning:
+        {
+            <status-indicator positive />
+            <label>Выполнено с замечаниями</label>
+            break;
+        }
+    }
+    <br />
+    if (OutputSplitByNewLines != null)
+    {
+        @foreach (string line in OutputSplitByNewLines)
+        {
+            <p>@line</p>
+        }
+        <p>Время: @_executionInfo.CompilerTime мс</p>
+    }
+     if (_executionInfo != null && _executionInfo.Hints.Count > 0)
+    {
+        <br />
+        int addc = 0;
+        int removec = 0;
+        int findc = 0;
+        <div class="container">
+        <div class="row row-cols-1" style="margin-right: 10px; width: 350px; float:left;">
+            @if (_executionInfo.Hints.Any(x => x.Contains(addStr)) && showAdd)
+            {
+                <button style="margin-bottom: 7px" class="btn btn-info" @onclick="AddCode"><text>Показать подсказку по методу Add</text></button>
+            }
+            @if (_executionInfo.Hints.Any(x => x.Contains(removeStr)) && showRemove)
+            {
+                <button style="margin-bottom: 7px" class="btn btn-info" @onclick="RemoveCode"><text>Показать подсказку по методу Remove</text></button>
+            }
+            @if (_executionInfo.Hints.Any(x => x.Contains(findStr)) && showFind)
+            {
+                <button style="margin-bottom: 7px" class="btn btn-info" @onclick="FindCode"><text>Показать подсказку по методу Find</text></button>
+            }
+        </div>
+         <div class="row row-cols-1" style="margin-left: 10px;">
+
+        @foreach (string line in _executionInfo.Hints)
+        {
+            if (line.Contains(addStr) && addc < AddCount)
+            {
+                addc++;
+                <p>@line</p>
+                if (addc >= _executionInfo.Hints.Count(x => x.Contains(addStr)))
+                {
+                    showAdd = false;
+                }
+            }
+            else if (line.Contains(removeStr) && removec < RemoveCount)
+            {
+                removec++;
+                <p>@line</p>
+                if (removec >= _executionInfo.Hints.Count(x => x.Contains(removeStr)))
+                {
+                    showRemove = false;
+                }
+            }
+            else if (line.Contains(findStr) && findc < FindCount)
+            {
+                findc++;
+                <p>@line</p>
+                if (findc >= _executionInfo.Hints.Count(x => x.Contains(findStr)))
+                {
+                    showFind = false;
+                }
+            }
+        }
+        </div>
+        </div>
+    }
+}
+
+
+@code
+{
+    string addStr = "Add";
+    string removeStr = "RemoveAt";
+    string findStr = "IndexOfKey";
+    
+    int AddCount = 0;
+    int RemoveCount = 0;
+    int FindCount = 0;
+    
+    bool showAdd = true;
+    bool showRemove = true;
+    bool showFind = true;
+    
+    void AddCode()
+    {
+        AddCount++;
+    }
+    
+    void RemoveCode()
+    {
+        RemoveCount++;
+    }
+    
+    void FindCode()
+    {
+        FindCount++;
+    }
+
+    bool _showCode;
+
+    void ToggleCode()
+    {
+        _showCode = !_showCode;
+    }
+    bool _userExecuted;
+    private string? _innerCode;
+    private string? _userInnerCode;
+
+    private bool ExecuteButtonDisabled = false;
+    
+    /// <summary>
+    /// Information about code execution operation
+    /// </summary>
+    private ExecutionInfo? _executionInfo;
+    /// <summary>
+    /// Output from ExecutionInfo, split by Environment.NewLine
+    /// </summary>
+    private IEnumerable<string>? OutputSplitByNewLines => _executionInfo?.Output.Split(Environment.NewLine);
+
+    private async Task UserExecuteCode()
+    {
+        if (_userInnerCode != null && !ExecuteButtonDisabled)
+        {
+            ExecuteButtonDisabled = true;
+            _executionInfo = new ExecutionInfo(ExecutionInfo.ExecutionStatus.Running, "");
+            var userresponse = await _http.PostAsJsonAsync("Execution/SortedList", value: _userInnerCode);
+            ExecutionInfo? result = await userresponse.Content.ReadFromJsonAsync<ExecutionInfo>();
+            _executionInfo = result;
+            ExecuteButtonDisabled = false;
+        }
+    }
+}

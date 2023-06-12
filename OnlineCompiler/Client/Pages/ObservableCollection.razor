@@ -1,0 +1,170 @@
+@page "/observablecollection"
+@using OnlineCompiler.Shared
+@inject HttpClient _http
+@using Microsoft.AspNetCore.Components
+@inject IStringLocalizer<Localization> _loc
+
+<PageTitle>@_loc["OnlineCsharpCompiler"]</PageTitle>
+
+<div class="container my-5">
+    <div class="text-center">
+        <h2>Наблюдаемая коллекция (ObservableCollection)</h2>
+    </div>
+    <p>Класс ObservableCollection представляет коллекцию, которая предоставляет уведомления о изменениях, происходящих в коллекции. Когда элементы в коллекции добавляются, удаляются или изменяются, ObservableCollection автоматически генерирует события, позволяя подписчикам реагировать на эти изменения.
+    </p>
+    <p>ObservableCollection является полезным классом в сценариях, где требуется отслеживание изменений коллекции и обновление пользовательского интерфейса или выполнение дополнительных действий при изменениях.
+    </p>
+        <p>Визуальное представление ObservableCollection:</p>
+        <img height="50%" width="50%" src="5.jpg">
+    <h3>В классе ObservableCollection можно выделить следующие методы:</h3>
+    <ul>
+        <li>Add: добавляет элемент в коллекцию</li>
+        <li>Remove: удаляет элемент из коллекции</li>
+        <li>Clear: очищает коллекцию</li>
+        <li>Insert: вставляет элемент в заданную позицию коллекции</li>
+    </ul>
+</div>
+
+@if (_userExecuted)
+{
+    <button class="btn btn-warning" @onclick="ToggleCode">@if (_showCode) {<text>Скрыть полный код разработчиков</text>} else {<text>Показать полный код разработчиков</text>}</button>
+    if (_showCode)
+    {
+        <p></p>
+        <CodeEditor @bind-Code="_innerCode">@TemplateObservableCollection.ObservableCollectionCode
+        </CodeEditor>
+        <br/>
+    }
+}                                                                                                               
+
+<p></p>
+<p>Пишите свой код тут: </p>
+<CodeEditor @bind-Code="_userInnerCode">@TemplateObservableCollection.UserObservableCollectionCode</CodeEditor>
+<br />
+<button class="btn btn-primary @(ExecuteButtonDisabled?"disabled":"")" @onclick="@(async () => { _userExecuted = true; await UserExecuteCode(); })">@_loc["Execute"]</button>
+
+<br />
+@if (_executionInfo != null)
+{
+    <text>&nbsp;</text>
+    switch (_executionInfo.Status)
+    {
+        case ExecutionInfo.ExecutionStatus.Preparing:
+            {
+                <status-indicator pulse />
+                <label>@_loc["Preparing"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.Compiling:
+            {
+                <status-indicator active />
+                <label>@_loc["Compiling"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.CompilationError:
+            {
+                <status-indicator negative />
+                <label>@_loc["CompilationError"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.Running:
+            {
+                <status-indicator active pulse />
+                <label>@_loc["Running"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.Finished:
+            {
+                <status-indicator positive />
+                <label>@_loc["Finished"]</label>
+                break;
+            }
+        case ExecutionInfo.ExecutionStatus.WithWarning:
+        {
+            <status-indicator positive />
+            <label>Выполнено с замечаниями</label>
+            break;
+        }
+    }
+    <br />
+    if (_executionInfo != null && _executionInfo.Hints.Count > 0)
+    {
+        @foreach (string line in _executionInfo.Hints)
+        {
+            <p>@line</p>
+        }
+    }
+    if (OutputSplitByNewLines != null)
+    {
+        @foreach (string line in OutputSplitByNewLines)
+        {
+            <p>@line</p>
+        }
+        <p>Время: @_executionInfo.CompilerTime мс</p>
+    }
+}
+
+
+@code
+{
+    string addStr = "Add";
+    string removeStr = "Remove";
+    string findStr = "Find";
+    
+    int AddCount = 0;
+    int RemoveCount = 0;
+    int FindCount = 0;
+    
+    bool showAdd = true;
+    bool showRemove = true;
+    bool showFind = true;
+    
+    void AddCode()
+    {
+        AddCount++;
+    }
+    
+    void RemoveCode()
+    {
+        RemoveCount++;
+    }
+    
+    void FindCode()
+    {
+        FindCount++;
+    }
+
+    bool _showCode;
+
+    void ToggleCode()
+    {
+        _showCode = !_showCode;
+    }
+    bool _userExecuted;
+    private string? _innerCode;
+    private string? _userInnerCode;
+
+    private bool ExecuteButtonDisabled = false;
+    
+    /// <summary>
+    /// Information about code execution operation
+    /// </summary>
+    private ExecutionInfo? _executionInfo;
+    /// <summary>
+    /// Output from ExecutionInfo, split by Environment.NewLine
+    /// </summary>
+    private IEnumerable<string>? OutputSplitByNewLines => _executionInfo?.Output.Split(Environment.NewLine);
+
+    private async Task UserExecuteCode()
+    {
+        if (_userInnerCode != null && !ExecuteButtonDisabled)
+        {
+            ExecuteButtonDisabled = true;
+            _executionInfo = new ExecutionInfo(ExecutionInfo.ExecutionStatus.Running, "");
+            var userresponse = await _http.PostAsJsonAsync("Execution/ObservableCollection", value: _userInnerCode);
+            ExecutionInfo? result = await userresponse.Content.ReadFromJsonAsync<ExecutionInfo>();
+            _executionInfo = result;
+            ExecuteButtonDisabled = false;
+        }
+    }
+}
