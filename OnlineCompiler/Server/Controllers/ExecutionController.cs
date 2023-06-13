@@ -33,7 +33,7 @@ public class ExecutionController : ControllerBase
         if (code == null) return null;
 
         var hints = new List<string>();
-
+        
         try
         {
             Type genericType = structureType switch
