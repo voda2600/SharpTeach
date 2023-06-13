@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CompilationError" xml:space="preserve">
-    <value>Compilation Error</value>
+    <value>Ошибка компиляции</value>
   </data>
   <data name="Compiling" xml:space="preserve">
     <value>Compiling</value>
@@ -136,7 +136,7 @@
     <value>Домой</value>
   </data>
   <data name="OnlineCsharpCompiler" xml:space="preserve">
-    <value>C# Compiler</value>
+    <value>C# Struct Core</value>
   </data>
   <data name="Preparing" xml:space="preserve">
     <value>Подготовка</value>

@@ -61,7 +61,7 @@ namespace OnlineCompiler.Client.Shared {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compilation Error.
+        ///   Looks up a localized string similar to Ошибка компиляции.
         /// </summary>
         public static string CompilationError {
             get {
@@ -115,7 +115,7 @@ namespace OnlineCompiler.Client.Shared {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to C# Compiler.
+        ///   Looks up a localized string similar to C# Struct Core.
         /// </summary>
         public static string OnlineCsharpCompiler {
             get {

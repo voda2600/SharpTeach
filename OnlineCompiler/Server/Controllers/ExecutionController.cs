@@ -1,4 +1,5 @@
 ﻿namespace OnlineCompiler.Server.Controllers;
+
 using Microsoft.AspNetCore.Mvc;
 using OnlineCompiler.Server.Handlers;
 using OnlineCompiler.Shared;
@@ -33,7 +34,7 @@ public class ExecutionController : ControllerBase
         if (code == null) return null;
 
         var hints = new List<string>();
-        
+
         try
         {
             Type genericType = structureType switch
@@ -53,7 +54,8 @@ public class ExecutionController : ControllerBase
 
             if (constructedType == null) throw new Exception("Error");
 
-            var hintMethod = typeof(HintReflectionHelper).GetMethod($"GetReflectionHints{structureType}", BindingFlags.Public | BindingFlags.Static);
+            var hintMethod = typeof(HintReflectionHelper).GetMethod($"GetReflectionHints{structureType}",
+                BindingFlags.Public | BindingFlags.Static);
             hintMethod?.Invoke(null, new object[] { code, constructedType, hints });
 
             bool checkResult = structureType switch
@@ -68,10 +70,26 @@ public class ExecutionController : ControllerBase
                 _ => false,
             };
 
-            if (checkResult.Equals(false)) return new ExecutionInfo(
+            if (checkResult.Equals(false))
+                return new ExecutionInfo(
+                    ExecutionInfo.ExecutionStatus.WithWarning,
+                    0,
+                    $"Структура {structureType} не прошла проверку на соответствие с поведением net standard на реальных данных",
+                    hints
+                );
+        }
+        catch (TargetInvocationException ex)
+        {
+            if (ex.InnerException.ToString().Contains("NotImplementedException"))
+            {
+                return new ExecutionInfo(ExecutionInfo.ExecutionStatus.CompilationError,
+                    $"В структуре все еще остались методы, которые требуют реализации. Обратите внимание на комментарии в коде с текстом //Нужна реализация.");
+            }
+
+            return new ExecutionInfo(
                 ExecutionInfo.ExecutionStatus.CompilationError,
                 0,
-                $"Структура {structureType} не прошла проверку на соответствие с поведением net standard на реальных данных",
+                $"Произошла ошибка при запуске структуры {structureType}: {ex}",
                 hints
             );
         }
@@ -83,11 +101,15 @@ public class ExecutionController : ControllerBase
         {
             return new ExecutionInfo(
                 ExecutionInfo.ExecutionStatus.CompilationError,
-                $"Произошла ошибка при запуске структуры {structureType}: {ex}"
+                0,
+                $"Произошла ошибка при запуске структуры {structureType}: {ex}",
+                hints
             );
         }
 
-        return new ExecutionInfo(hints.Count > 0 ? ExecutionInfo.ExecutionStatus.WithWarning : ExecutionInfo.ExecutionStatus.Finished, 111, "", hints);
+        return new ExecutionInfo(
+            hints.Count > 0 ? ExecutionInfo.ExecutionStatus.WithWarning : ExecutionInfo.ExecutionStatus.Finished, 111,
+            "", hints);
     }
 
     /// <summary>

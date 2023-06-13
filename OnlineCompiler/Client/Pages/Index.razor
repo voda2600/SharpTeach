@@ -6,16 +6,10 @@
 
 <PageTitle>@_loc["OnlineCsharpCompiler"]</PageTitle>
 
-<h1>@_loc["OnlineCsharpCompiler"]</h1>
-
-@_loc["Description"]
-
-<CodeEditor @bind-Code="InnerCode">Console.WriteLine("Hello world");
-</CodeEditor>
-
+<h4 style="text-align: center; margin-top: 30px;">Добро пожаловать на обучающую платформу по базовым структурам данных C#. <br/>Здесь вы можете реализовать заинтересующую Вас структуру.<br/>
+    После чего получить интерактивные подсказки и анализ производительности Вашей реализации.</h4>
 <br />
-
-<button class="btn btn-primary @(ExecuteButtonDisabled?"disabled":"")" @onclick="ExecuteCode">@_loc["Execute"]</button>
+<div style="text-align: center"><img src="AIGen.png" height="40%" width="40%"></div>
 
 @if (ExecutionInfo != null)
 {
