@@ -1,9 +1,16 @@
 ﻿namespace OnlineCompiler.Server.Controllers;
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OnlineCompiler.Server.Data;
 using OnlineCompiler.Server.Handlers;
+using OnlineCompiler.Server.Models;
 using OnlineCompiler.Shared;
+using System;
 using System.Reflection;
+using System.Security.Claims;
 
 [ApiController]
 [Route("[controller]")]
@@ -12,10 +19,19 @@ public class ExecutionController : ControllerBase
     private static Dictionary<string, CodeExecutor> _codeExecutors = new Dictionary<string, CodeExecutor>();
 
     private readonly ILogger<ExecutionController> _logger;
+    private readonly ApplicationDbContext _db;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ExecutionController(ILogger<ExecutionController> logger)
+    public ExecutionController(ILogger<ExecutionController> logger, 
+        ApplicationDbContext db, 
+        UserManager<ApplicationUser> userManager,
+        IHttpContextAccessor httpContextAccessor)
     {
         _logger = logger;
+        _db = db;
+        _userManager = userManager;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public enum StructureType
@@ -122,6 +138,28 @@ public class ExecutionController : ControllerBase
     [Route("{structureType}")]
     public ExecutionInfo Post([FromBody] string? code, StructureType structureType)
     {
+        // Как сохранить в БД
+        //if (code != null)
+        //{
+        //    StructureInfo structureInfo = new StructureInfo()
+        //    {
+        //        ApplicationUserId = _db.Users.FirstOrDefault()?.Id,
+        //        StructureType = structureType,
+        //        LastSaved = DateTime.Now,
+        //        Code = code
+        //    };
+        //    _db.StructureInfos.Add(structureInfo);
+        //    _db.SaveChanges();
+        //}
+
+        // Как получить код из БД по Ид пользователя и типу структуры
+        //StructureInfo structure = _db.StructureInfos
+        //    .FirstOrDefault(s => s.ApplicationUserId == _db.Users.FirstOrDefault().Id
+        //    && s.StructureType == structureType);
+
+        var id = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var UserName = _httpContextAccessor.HttpContext?.User.Identity.Name;
+
         return ProcessCode(code, structureType);
     }
 
