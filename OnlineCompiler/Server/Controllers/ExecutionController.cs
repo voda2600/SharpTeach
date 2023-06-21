@@ -136,31 +136,31 @@ public class ExecutionController : ControllerBase
     /// <returns>Unique id of the operation</returns>
     [HttpPost]
     [Route("{structureType}")]
-    public ExecutionInfo Post([FromBody] string? code, StructureType structureType)
+    public ExecutionInfo Post([FromBody] RequestData data, StructureType structureType)
     {
-        // Как сохранить в БД
-        //if (code != null)
-        //{
-        //    StructureInfo structureInfo = new StructureInfo()
-        //    {
-        //        ApplicationUserId = _db.Users.FirstOrDefault()?.Id,
-        //        StructureType = structureType,
-        //        LastSaved = DateTime.Now,
-        //        Code = code
-        //    };
-        //    _db.StructureInfos.Add(structureInfo);
-        //    _db.SaveChanges();
-        //}
+        if (data.Code != null)
+        {
+            StructureInfo structureInfo = new StructureInfo()
+            {
+                UserLogin = data.Login,
+                StructureType = structureType,
+                LastSaved = DateTime.UtcNow,
+                Code = data.Code
+            };
+            _db.StructureInfos.Add(structureInfo);
+            _db.SaveChanges();
+        }
 
-        // Как получить код из БД по Ид пользователя и типу структуры
-        //StructureInfo structure = _db.StructureInfos
-        //    .FirstOrDefault(s => s.ApplicationUserId == _db.Users.FirstOrDefault().Id
-        //    && s.StructureType == structureType);
+        return ProcessCode(data.Code, structureType);
+    }
 
-        var id = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var UserName = _httpContextAccessor.HttpContext?.User.Identity.Name;
-
-        return ProcessCode(code, structureType);
+    [HttpPost]
+    [Route("GetCode/{structureType}")]
+    public string Post([FromBody] string username, StructureType structureType)
+    {
+        var structure = _db.StructureInfos.OrderByDescending(x=>x.LastSaved).FirstOrDefault(s => s.UserLogin == username
+                                                          && s.StructureType == structureType);
+        return structure == null ? "" : structure.Code;
     }
 
     /// <summary>

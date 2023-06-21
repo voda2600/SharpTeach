@@ -12,7 +12,7 @@ namespace OnlineCompiler.Server.Data
             DbContextOptions options,
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
         {
-            //Database.EnsureDeleted();
+            /*Database.EnsureDeleted();*/
             Database.EnsureCreated();
         }
 

@@ -2,6 +2,7 @@
 @using OnlineCompiler.Shared
 @inject HttpClient _http
 @using Microsoft.AspNetCore.Components
+@using System.Security.Claims
 @inject IStringLocalizer<Localization> _loc
 
 <PageTitle>@_loc["OnlineCsharpCompiler"]</PageTitle>
@@ -28,6 +29,26 @@
     </ul>
 </div>
 
+<AuthorizeView>
+    <Authorized>
+        @{
+            username = context.User.Identity?.Name;
+            ExecuteButtonDisabled = false; 
+        }
+    </Authorized>
+    <NotAuthorized>
+        @{
+            ExecuteButtonDisabled = true; 
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@if (!string.IsNullOrEmpty(username) && !isCodeLoaded)
+{
+    <button class="btn btn-primary" @onclick="GetUserCode"><text>Загрузить сохранённую реализацию</text></button>
+    <br/>
+    isCodeLoaded = true;
+}
 
 @if (_userExecuted)
 {
@@ -40,18 +61,17 @@
         <br/>
 
     }
-}                                                                                                               
+}
 
-    <p></p>
+<p></p>
 <p>Пишите свой код тут: </p>
-<CodeEditor @bind-Code="_userInnerCode">@TemplateList.UserListCode</CodeEditor>
+<CodeEditor @bind-Code="_userInnerCode">@_userInnerCode</CodeEditor>
 <br />
 <button class="btn btn-primary @(ExecuteButtonDisabled?"disabled":"")" @onclick="@(async () => { _userExecuted = true; await UserExecuteCode(); })">@_loc["Execute"]</button>
 
 <br />
 @if (_executionInfo != null)
 {
-    <text>&nbsp;</text>
     switch (_executionInfo.Status)
     {
         case ExecutionInfo.ExecutionStatus.Preparing:
@@ -160,10 +180,12 @@
 
 @code
 {
+    string username = "";
+    bool isCodeLoaded = false;
     string addStr = "Add";
     string removeStr = "Remove";
     string findStr = "Find";
-    
+
     int AddCount = 0;
     int RemoveCount = 0;
     int FindCount = 0;
@@ -195,7 +217,7 @@
     }
     bool _userExecuted;
     private string? _innerCode;
-    private string? _userInnerCode;
+    private string? _userInnerCode = TemplateList.UserListCode;
 
     private bool ExecuteButtonDisabled = false;
     
@@ -214,10 +236,20 @@
         {
             ExecuteButtonDisabled = true;
             _executionInfo = new ExecutionInfo(ExecutionInfo.ExecutionStatus.Running, "");
-            var userresponse = await _http.PostAsJsonAsync("Execution/List", value: _userInnerCode);
+            var data = new RequestData(){Code = _userInnerCode, Login = username};
+            var userresponse = await _http.PostAsJsonAsync("Execution/List", data);
             ExecutionInfo? result = await userresponse.Content.ReadFromJsonAsync<ExecutionInfo>();
             _executionInfo = result;
             ExecuteButtonDisabled = false;
         }
+    }
+    
+    private async Task GetUserCode()
+    {
+        ExecuteButtonDisabled = true;
+        var userresponse1 = await _http.PostAsJsonAsync("Execution/GetCode/List", username);
+        var result = await userresponse1.Content.ReadAsStringAsync();
+        _userInnerCode = string.IsNullOrWhiteSpace(result) ? _userInnerCode : result;
+        ExecuteButtonDisabled = false;
     }
 }

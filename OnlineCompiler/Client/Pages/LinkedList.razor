@@ -28,6 +28,27 @@
     </ul>
 </div>
 
+<AuthorizeView>
+    <Authorized>
+        @{
+            username = context.User.Identity?.Name;
+            ExecuteButtonDisabled = false; 
+        }
+    </Authorized>
+    <NotAuthorized>
+        @{
+            ExecuteButtonDisabled = true; 
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@if (!string.IsNullOrEmpty(username) && !isCodeLoaded)
+{
+    <button class="btn btn-primary" @onclick="GetUserCode"><text>Загрузить сохранённую реализацию</text></button>
+    <br/>
+    isCodeLoaded = true;
+}
+
 @if (_userExecuted)
 {
     <button class="btn btn-warning" @onclick="ToggleCode">@if (_showCode) {<text>Скрыть полный код разработчиков</text>} else {<text>Показать полный код разработчиков</text>}</button>
@@ -43,7 +64,7 @@
 
 <p></p>
 <p>Пишите свой код тут: </p>
-<CodeEditor @bind-Code="_userInnerCode">@TemplateLinkedList.UserLinkedListCode</CodeEditor>
+<CodeEditor @bind-Code="_userInnerCode">@_userInnerCode</CodeEditor>
 <br />
 <button class="btn btn-primary @(ExecuteButtonDisabled?"disabled":"")" @onclick="@(async () => { _userExecuted = true; await UserExecuteCode(); })">@_loc["Execute"]</button>
 
@@ -160,6 +181,8 @@
 
 @code
 {
+    string username = "";
+    bool isCodeLoaded = false;
     string addStr = "Add";
     string removeStr = "Remove";
     string findStr = "Find";
@@ -195,7 +218,7 @@
     }
     bool _userExecuted;
     private string? _innerCode;
-    private string? _userInnerCode;
+    private string? _userInnerCode = TemplateLinkedList.UserLinkedListCode;
 
     private bool ExecuteButtonDisabled = false;
     
@@ -214,10 +237,19 @@
         {
             ExecuteButtonDisabled = true;
             _executionInfo = new ExecutionInfo(ExecutionInfo.ExecutionStatus.Running, "");
-            var userresponse = await _http.PostAsJsonAsync("Execution/LinkedList", value: _userInnerCode);
+            var data = new RequestData(){Code = _userInnerCode, Login = username};
+            var userresponse = await _http.PostAsJsonAsync("Execution/LinkedList", data);
             ExecutionInfo? result = await userresponse.Content.ReadFromJsonAsync<ExecutionInfo>();
             _executionInfo = result;
             ExecuteButtonDisabled = false;
         }
+    }
+    private async Task GetUserCode()
+    {
+        ExecuteButtonDisabled = true;
+        var userresponse1 = await _http.PostAsJsonAsync("Execution/GetCode/LinkedList", username);
+        var result = await userresponse1.Content.ReadAsStringAsync();
+        _userInnerCode = string.IsNullOrWhiteSpace(result) ? _userInnerCode : result;
+        ExecuteButtonDisabled = false;
     }
 }

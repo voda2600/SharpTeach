@@ -45,4 +45,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Identity.Core" />
+  </ItemGroup>
+
 </Project>
