@@ -26,7 +26,7 @@ public static class CodeCompileChecker<T>
         return (constructedType, instance);
     }
 
-    public static bool CheckStack(string code, T item)
+    public static bool CheckStack(string code, T[] item,  ref long addTime, ref long findTime, ref long deleteTime)
     {
         Stack<T> stack = new Stack<T>();
         var (type, instance) = GetInstance(code, "Stack");
@@ -39,28 +39,28 @@ public static class CodeCompileChecker<T>
             && CheckStack<T>.CheckToArray(stack, type, instance, item);
     }
 
-    public static bool CheckList(string code, T item)
+    public static bool CheckList(string code, T[] item, ref long addTime, ref long findTime, ref long deleteTime)
     {
         List<T> list = new List<T>();
         var (type, instance) = GetInstance(code, "List");
 
-        return CheckList<T>.CheckAdd(list, type, instance, item)
-            && CheckList<T>.CheckRemove(list, type, instance, item)
+        return CheckList<T>.CheckAdd(list, type, instance, item, ref addTime)
+            && CheckList<T>.CheckRemove(list, type, instance, item, ref deleteTime)
             && CheckList<T>.CheckInsert(list, type, instance, item)
             && CheckList<T>.CheckClear(list, type, instance, item)
-            && CheckList<T>.CheckContains(list, type, instance, item);
+            && CheckList<T>.CheckContains(list, type, instance, item, ref findTime);
     }
 
-    public static bool CheckLinkedList(string code, T item)
+    public static bool CheckLinkedList(string code, T[] item, ref long addTime, ref long findTime, ref long deleteTime)
     {
         LinkedList<T> list = new LinkedList<T>();
         var (type, instance) = GetInstance(code, "LinkedList");
 
-        return CheckLinkedList<T>.CheckAddLast(list, type, instance, item)
+        return CheckLinkedList<T>.CheckAddLast(list, type, instance, item, ref addTime)
             && CheckLinkedList<T>.CheckAddFirst(list, type, instance, item)
-            && CheckLinkedList<T>.CheckRemove(list, type, instance, item)
+            && CheckLinkedList<T>.CheckRemove(list, type, instance, item, ref deleteTime)
             && CheckLinkedList<T>.CheckClear(list, type, instance, item)
-            && CheckLinkedList<T>.CheckContains(list, type, instance, item);
+            && CheckLinkedList<T>.CheckContains(list, type, instance, item, ref findTime);
     }
 
     public static bool CheckSortedList(string code, T first, T second)

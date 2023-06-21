@@ -23,8 +23,8 @@ public class ExecutionController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ExecutionController(ILogger<ExecutionController> logger, 
-        ApplicationDbContext db, 
+    public ExecutionController(ILogger<ExecutionController> logger,
+        ApplicationDbContext db,
         UserManager<ApplicationUser> userManager,
         IHttpContextAccessor httpContextAccessor)
     {
@@ -51,6 +51,10 @@ public class ExecutionController : ControllerBase
 
         var hints = new List<string>();
 
+        long addTime = 0;
+        long findTime = 0;
+        long deleteTime = 0;
+
         try
         {
             Type genericType = structureType switch
@@ -72,14 +76,31 @@ public class ExecutionController : ControllerBase
 
             var hintMethod = typeof(HintReflectionHelper).GetMethod($"GetReflectionHints{structureType}",
                 BindingFlags.Public | BindingFlags.Static);
-            hintMethod?.Invoke(null, new object[] { code, constructedType, hints });
+            hintMethod?.Invoke(null, new object[] {code, constructedType, hints});
 
+
+            var massiveTest = new[]
+            {
+                "first",
+                "second",
+                "third",
+                "test",
+                "asaaaaaaa",
+                "helicopter",
+                "water",
+                "sans",
+                "jeluver",
+                "9125919252105012012512"
+            };
             bool checkResult = structureType switch
             {
-                StructureType.List => CodeCompileChecker<string>.CheckList(code, "first"),
-                StructureType.LinkedList => CodeCompileChecker<string>.CheckLinkedList(code, "first"),
+                StructureType.List => CodeCompileChecker<string>.CheckList(code, massiveTest, ref addTime, ref findTime,
+                    ref deleteTime),
+                StructureType.LinkedList => CodeCompileChecker<string>.CheckLinkedList(code, massiveTest, ref addTime, ref findTime,
+                    ref deleteTime),
                 StructureType.SortedList => CodeCompileChecker<string>.CheckSortedList(code, "a", "b"),
-                StructureType.Stack => CodeCompileChecker<string>.CheckStack(code, "first"),
+                StructureType.Stack => CodeCompileChecker<string>.CheckStack(code,  massiveTest, ref addTime, ref findTime,
+                    ref deleteTime),
                 StructureType.HashSet => CodeCompileChecker<string>.CheckHashSet(code, "first"),
                 StructureType.Dictionary => CodeCompileChecker<string>.CheckDictionary(code, "key", "value"),
                 StructureType.Queue => CodeCompileChecker<string>.CheckQueue(code, "first"),
@@ -89,7 +110,7 @@ public class ExecutionController : ControllerBase
             if (checkResult.Equals(false))
                 return new ExecutionInfo(
                     ExecutionInfo.ExecutionStatus.WithWarning,
-                    0,
+                    0, 0, 0,
                     $"Структура {structureType} не прошла проверку на соответствие с поведением net standard на реальных данных",
                     hints
                 );
@@ -104,7 +125,7 @@ public class ExecutionController : ControllerBase
 
             return new ExecutionInfo(
                 ExecutionInfo.ExecutionStatus.CompilationError,
-                0,
+                0, 0, 0,
                 $"Произошла ошибка при запуске структуры {structureType}: {ex}",
                 hints
             );
@@ -117,14 +138,15 @@ public class ExecutionController : ControllerBase
         {
             return new ExecutionInfo(
                 ExecutionInfo.ExecutionStatus.CompilationError,
-                0,
+                0, 0, 0,
                 $"Произошла ошибка при запуске структуры {structureType}: {ex}",
                 hints
             );
         }
 
         return new ExecutionInfo(
-            hints.Count > 0 ? ExecutionInfo.ExecutionStatus.WithWarning : ExecutionInfo.ExecutionStatus.Finished, 111,
+            hints.Count > 0 ? ExecutionInfo.ExecutionStatus.WithWarning : ExecutionInfo.ExecutionStatus.Finished,
+            addTime, findTime, deleteTime,
             "", hints);
     }
 
@@ -158,8 +180,9 @@ public class ExecutionController : ControllerBase
     [Route("GetCode/{structureType}")]
     public string Post([FromBody] string username, StructureType structureType)
     {
-        var structure = _db.StructureInfos.OrderByDescending(x=>x.LastSaved).FirstOrDefault(s => s.UserLogin == username
-                                                          && s.StructureType == structureType);
+        var structure = _db.StructureInfos.OrderByDescending(x => x.LastSaved).FirstOrDefault(s =>
+            s.UserLogin == username
+            && s.StructureType == structureType);
         return structure == null ? "" : structure.Code;
     }
 

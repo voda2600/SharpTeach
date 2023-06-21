@@ -20,7 +20,9 @@ namespace OnlineCompiler.Shared
 
         public ExecutionStatus Status { get; set; }
         public string Output { get; set; }
-        public long CompilerTime { get; set; }
+        public long AddTime { get; set; }
+        public long FindTime { get; set; }
+        public long DeleteTime { get; set; }
         public int ErrorLineNumber { get; set; } // новое свойство
 
         public List<string> Hints { get; set; } = new List<string>();
@@ -36,17 +38,21 @@ namespace OnlineCompiler.Shared
             this.Output = Output;
         }
 
-        public ExecutionInfo(ExecutionStatus resultStatus, long CompilerTime, string Output, List<string> hints)
+        public ExecutionInfo(ExecutionStatus resultStatus, long addTime, long findTime, long deleteTime, string Output, List<string> hints)
         {
             this.Status = resultStatus;
-            this.CompilerTime = CompilerTime;
+            AddTime = addTime;
+            FindTime = findTime;
+            DeleteTime = deleteTime;
             this.Output = Output;
             this.Hints = hints;
         }
-        public ExecutionInfo(ExecutionStatus resultStatus, long compilerTime, int errorLineNumber, string output, List<string> hints)
+        public ExecutionInfo(ExecutionStatus resultStatus,long addTime, long findTime, long deleteTime, int errorLineNumber, string output, List<string> hints)
         {
             this.Status = resultStatus;
-            this.CompilerTime = compilerTime;
+            AddTime = addTime;
+            FindTime = findTime;
+            DeleteTime = deleteTime;
             this.Output = output;
             this.ErrorLineNumber = errorLineNumber;
             this.Hints = hints;

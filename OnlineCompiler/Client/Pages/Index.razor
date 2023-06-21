@@ -6,10 +6,14 @@
 
 <PageTitle>@_loc["OnlineCsharpCompiler"]</PageTitle>
 
-<h4 style="text-align: center; margin-top: 30px;">Добро пожаловать на обучающую платформу по базовым структурам данных C#. <br/>Здесь вы можете реализовать заинтересующую Вас структуру.<br/>
-    После чего получить интерактивные подсказки и анализ производительности Вашей реализации.</h4>
-<br />
-<div style="text-align: center"><img src="AIGen.png" height="40%" width="40%"></div>
+<h4 style="text-align: center; margin-top: 30px;">
+    Добро пожаловать на обучающую платформу по базовым структурам данных C#. <br/>Здесь вы можете реализовать заинтересующую Вас структуру.<br/>
+    После чего получить интерактивные подсказки и анализ производительности Вашей реализации.
+</h4>
+<br/>
+<div style="text-align: center">
+    <img src="AIGen.png" height="40%" width="40%">
+</div>
 
 @if (ExecutionInfo != null)
 {
@@ -17,44 +21,43 @@
     switch (ExecutionInfo.Status)
     {
         case ExecutionInfo.ExecutionStatus.Preparing:
-            {
-                <status-indicator pulse />
-                <label>@_loc["Preparing"]</label>
-                break;
-            }
+        {
+            <status-indicator pulse/>
+            <label>@_loc["Preparing"]</label>
+            break;
+        }
         case ExecutionInfo.ExecutionStatus.Compiling:
-            {
-                <status-indicator active />
-                <label>@_loc["Compiling"]</label>
-                break;
-            }
+        {
+            <status-indicator active/>
+            <label>@_loc["Compiling"]</label>
+            break;
+        }
         case ExecutionInfo.ExecutionStatus.CompilationError:
-            {
-                <status-indicator negative />
-                <label>@_loc["CompilationError"]</label>
-                break;
-            }
+        {
+            <status-indicator negative/>
+            <label>@_loc["CompilationError"]</label>
+            break;
+        }
         case ExecutionInfo.ExecutionStatus.Running:
-            {
-                <status-indicator active pulse />
-                <label>@_loc["Running"]</label>
-                break;
-            }
+        {
+            <status-indicator active pulse/>
+            <label>@_loc["Running"]</label>
+            break;
+        }
         case ExecutionInfo.ExecutionStatus.Finished:
-            {
-                <status-indicator positive />
-                <label>@_loc["Finished"]</label>
-                break;
-            }
+        {
+            <status-indicator positive/>
+            <label>@_loc["Finished"]</label>
+            break;
+        }
     }
-    <br />
+    <br/>
     if (ExecutionInfo.Output != null && OutputSplitByNewLines != null)
     {
         @foreach (string line in OutputSplitByNewLines)
         {
             <p>@line</p>
         }
-        <p class="btn btn-success">Время: @ExecutionInfo.CompilerTime мс</p>
     }
 }
 
@@ -62,16 +65,21 @@
 {
     private string? InnerCode;
 
-    private bool ExecuteButtonDisabled { get => ExecutionId != null; }
+    private bool ExecuteButtonDisabled
+    {
+        get => ExecutionId != null;
+    }
 
     /// <summary>
     /// Unique id of code execution operation
     /// </summary>
     private string? ExecutionId;
+
     /// <summary>
     /// Information about code execution operation
     /// </summary>
     private ExecutionInfo? ExecutionInfo;
+
     /// <summary>
     /// Output from ExecutionInfo, split by Environment.NewLine
     /// </summary>
@@ -81,9 +89,9 @@
     {
         if (InnerCode != null && !ExecuteButtonDisabled)
         {
-            // Sending C# code to server
+    // Sending C# code to server
             HttpResponseMessage? response = await _http.PostAsJsonAsync("Execution", InnerCode);
-            // Getting unique id of code execution operation from server
+    // Getting unique id of code execution operation from server
             if (response != null && response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 ExecutionId = await response.Content.ReadAsStringAsync();
@@ -98,7 +106,7 @@
     {
         do
         {
-            ExecutionInfo = ((ExecutionInfo?)(await _http.GetFromJsonAsync<ExecutionInfo?>("Execution/" + ExecutionId)));
+            ExecutionInfo = ((ExecutionInfo?) (await _http.GetFromJsonAsync<ExecutionInfo?>("Execution/" + ExecutionId)));
             StateHasChanged();
             await Task.Delay(1000);
         } while (ExecutionInfo != null && (ExecutionInfo.Status != ExecutionInfo.ExecutionStatus.Finished && ExecutionInfo.Status != ExecutionInfo.ExecutionStatus.CompilationError));

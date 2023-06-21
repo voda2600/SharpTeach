@@ -117,7 +117,9 @@
         {
             <p>@line</p>
         }
-        <p>Время: @_executionInfo.CompilerTime мс</p>
+        <p>Время вставки: @_executionInfo.AddTime tick</p>
+        <p>Время поиска: @_executionInfo.FindTime tick</p>
+        <p>Время удаления: @_executionInfo.DeleteTime tick</p>
     }
      if (_executionInfo != null && _executionInfo.Hints.Count > 0)
     {
