@@ -82,16 +82,24 @@ public static class CheckStack<T>
             type.GetMethod("Push").Invoke(instance, new object[] {a});
         }
 
-        bool originContains = stack.Contains(item);
-        bool constructedContains = (bool) type.GetMethod("Contains").Invoke(instance, new object[] {item});
+        bool originContains = stack.Contains(item.First());
 
+        var constructedContains = false;
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+        foreach (var a in item)
+        {
+            constructedContains = (bool) type.GetMethod("Contains").Invoke(instance, new object[] {a});
+        }
+        stopwatch.Stop();
+        findTime = stopwatch.ElapsedTicks;
         return originContains == constructedContains;
     }
 
     public static bool CheckToArray(Stack<T> stack, Type type, object instance, T[] item)
     {
-        stack.Push(item);
-        type.GetMethod("Push").Invoke(instance, new object[] {item});
+        stack.Push(item.First());
+        type.GetMethod("Push").Invoke(instance, new object[] {item.First()});
 
         var originArray = stack.ToArray();
         var constructedArray = (T[]) type.GetMethod("ToArray").Invoke(instance, null);

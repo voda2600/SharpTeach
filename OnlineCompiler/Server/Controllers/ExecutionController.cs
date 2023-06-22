@@ -101,9 +101,11 @@ public class ExecutionController : ControllerBase
                 StructureType.SortedList => CodeCompileChecker<string>.CheckSortedList(code, "a", "b"),
                 StructureType.Stack => CodeCompileChecker<string>.CheckStack(code,  massiveTest, ref addTime, ref findTime,
                     ref deleteTime),
-                StructureType.HashSet => CodeCompileChecker<string>.CheckHashSet(code, "first"),
+                StructureType.HashSet => CodeCompileChecker<string>.CheckHashSet(code, massiveTest, ref addTime, ref findTime,
+                    ref deleteTime),
                 StructureType.Dictionary => CodeCompileChecker<string>.CheckDictionary(code, "key", "value"),
-                StructureType.Queue => CodeCompileChecker<string>.CheckQueue(code, "first"),
+                StructureType.Queue => CodeCompileChecker<string>.CheckQueue(code, massiveTest, ref addTime, ref findTime,
+                    ref deleteTime),
                 _ => false,
             };
 

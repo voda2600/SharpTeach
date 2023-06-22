@@ -31,11 +31,11 @@ public static class CodeCompileChecker<T>
         Stack<T> stack = new Stack<T>();
         var (type, instance) = GetInstance(code, "Stack");
 
-        return CheckStack<T>.CheckPush(stack, type, instance, item)
-            && CheckStack<T>.CheckPeek(stack, type, instance, item)
+        return CheckStack<T>.CheckPush(stack, type, instance, item, ref addTime)
+            && CheckStack<T>.CheckPeek(stack, type, instance, item, ref deleteTime)
             && CheckStack<T>.CheckTryPeek(stack, type, instance, item)
             && CheckStack<T>.CheckClear(stack, type, instance, item)
-            && CheckStack<T>.CheckContains(stack, type, instance, item)
+            && CheckStack<T>.CheckContains(stack, type, instance, item, ref findTime)
             && CheckStack<T>.CheckToArray(stack, type, instance, item);
     }
 
@@ -78,26 +78,26 @@ public static class CodeCompileChecker<T>
             && CheckSortedList<T>.CheckIsSorted(type, instance, item1, item2);
     }
 
-    public static bool CheckQueue(string code, T item)
+    public static bool CheckQueue(string code, T[] item, ref long addTime, ref long findTime, ref long deleteTime)
     {
         Queue<T> queue = new Queue<T>();
         var (type, instance) = GetInstance(code, "Queue");
 
-        return CheckQueue<T>.CheckEnqueue(queue, type, instance, item)
+        return CheckQueue<T>.CheckEnqueue(queue, type, instance, item.First())
             && CheckQueue<T>.CheckDequeue(queue, type, instance)
-            && CheckQueue<T>.CheckPeek(queue, type, instance, item)
+            && CheckQueue<T>.CheckPeek(queue, type, instance, item.First())
             && CheckQueue<T>.CheckClear(queue, type, instance)
-            && CheckQueue<T>.CheckContains(queue, type, instance, item);
+            && CheckQueue<T>.CheckContains(queue, type, instance, item.First());
     }
-    public static bool CheckHashSet(string code, T item)
+    public static bool CheckHashSet(string code, T[] item, ref long addTime, ref long findTime, ref long deleteTime)
     {
         HashSet<T> set = new HashSet<T>();
         var (type, instance) = GetInstance(code, "HashSet");
 
-        return CheckHashSet<T>.CheckAdd(set, type, instance, item)
-            && CheckHashSet<T>.CheckRemove(set, type, instance, item)
+        return CheckHashSet<T>.CheckAdd(set, type, instance, item, ref addTime)
+            && CheckHashSet<T>.CheckRemove(set, type, instance, item, ref deleteTime)
             && CheckHashSet<T>.CheckClear(set, type, instance, item)
-            && CheckHashSet<T>.CheckContains(set, type, instance, default(T))
+            && CheckHashSet<T>.CheckContains(set, type, instance, item, ref findTime)
             && CheckHashSet<T>.CheckUnionSet(set, type, instance, new HashSet<T>());
     }
     public static bool CheckDictionary(string code, string key, T value)
